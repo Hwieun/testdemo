@@ -12,11 +12,13 @@ import com.naver.line.demo.user.entities.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.validation.ConstraintViolationException;
+
 @Service
 public class UserService {
 
   private final UserRepository userRepository;
-  
+
   public UserService(UserRepository userRepository) {
     this.userRepository = userRepository;
   }
@@ -29,16 +31,28 @@ public class UserService {
   @Transactional(readOnly = true)
   public User shouldFindById(int id) {
     return this.findById(id)
-      .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없음"));
+            .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없음"));
   }
 
   @Transactional(readOnly = true)
   public User validateUserStatusAndGet(int id) {
     User user = this.userRepository.findById(id)
-      .orElseThrow(() -> new UnauthorizedException("사용자 정보를 찾을 수 없습니다."));
+            .orElseThrow(() -> new UnauthorizedException("사용자 정보를 찾을 수 없습니다."));
     if (!user.isEnabled()) {
       throw new UnauthorizedException("비활성화 된 사용자 정보입니다.");
     }
+    return user;
+  }
+
+  @Transactional(readOnly = true)
+  public User validateForCreateAccount(int id) {
+    User user = validateUserStatusAndGet(id);
+    if (user.getAccounts().size() >= 3) throw new IllegalStateException("이미 3개의 계좌를 개설했습니다.");
+    user.getAccounts().stream().forEach(account -> {
+      if(account.getCreatedAt().toLocalDate().equals(LocalDate.now()))
+        throw new IllegalStateException("이미 오늘 계좌를 개설했습니다.");
+    });
+
     return user;
   }
 

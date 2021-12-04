@@ -2,19 +2,18 @@ package com.naver.line.demo.user.entities;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
+import com.naver.line.demo.account.entity.Account;
+import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "users")
+@Data
 public class User {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,6 +42,9 @@ public class User {
   @UpdateTimestamp
   private LocalDateTime updatedAt;
 
+  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+  private List<Account> accounts;
+
   public User() { }
 
   public User(String name, String email, String phone, LocalDate birthday) {
@@ -57,50 +59,6 @@ public class User {
     ENABLED, DISABLED
   }
 
-  public Integer getId() {
-    return id;
-  }
-
-  public String getName() {
-    return name;
-  }
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public String getPhone() {
-    return phone;
-  }
-  public void setPhone(String phone) {
-    this.phone = phone;
-  }
-
-  public String getEmail() {
-    return email;
-  }
-  public void setEmail(String email) {
-    this.email = email;
-  }
-
-  public LocalDate getBirthday() {
-    return birthday;
-  }
-  public void setBirthday(LocalDate birthday) {
-    this.birthday = birthday;
-  }
-
-  public Status getStatus() {
-    return status;
-  }
-
-  public LocalDateTime getCreatedAt() {
-    return createdAt;
-  }
-
-  public LocalDateTime getUpdatedAt() {
-    return updatedAt;
-  }
-
   public boolean isEnabled() {
     return this.status == Status.ENABLED;
   }
@@ -108,4 +66,5 @@ public class User {
   public void disable() {
     this.status = Status.DISABLED;
   }
+
 }

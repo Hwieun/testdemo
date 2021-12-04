@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
+import java.util.NoSuchElementException;
+
 @ControllerAdvice
 public class GeneralExceptionHandler {
   private final Logger log = LoggerFactory.getLogger(getClass());
@@ -38,7 +40,8 @@ public class GeneralExceptionHandler {
 
   @ExceptionHandler({
     NoHandlerFoundException.class,
-    NotFoundException.class
+    NotFoundException.class,
+          NoSuchElementException.class
   })
   public ResponseEntity<?> handleNotFoundException(Exception e) {
     return newResponse(e, HttpStatus.NOT_FOUND);
@@ -67,6 +70,11 @@ public class GeneralExceptionHandler {
       );
     }
     return newResponse(e, HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler(ForbiddenException.class)
+  public ResponseEntity<?> handleForbidden(Exception e) {
+    return newResponse(e, HttpStatus.FORBIDDEN);
   }
   
   @ExceptionHandler(HttpMediaTypeException.class)
