@@ -74,4 +74,11 @@ public class Account extends Constants {
         this.status = Status.DISABLED;
     }
 
+    public void update(Integer transferLimit, Integer dailyTransferLimit) {
+        if(status.equals(Status.DISABLED))
+            throw new IllegalStateException();
+        this.transferLimit = transferLimit;
+        this.dailyTransferLimit = dailyTransferLimit;
+    }
+
 }

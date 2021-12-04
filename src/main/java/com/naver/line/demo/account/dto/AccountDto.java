@@ -43,4 +43,11 @@ public class AccountDto {
         copyProperties(source, this);
         userId = source.getUser().getId();
     }
+
+    public AccountDto(Integer transferLimit, Integer dailyTransferLimit) {
+        this.transferLimit = transferLimit;
+        this.dailyTransferLimit = dailyTransferLimit;
+    }
 }
+
+// curl -X POST localhost:5000/api/accounts -H 'X-USER-ID:4' -d 'transfer_limit'

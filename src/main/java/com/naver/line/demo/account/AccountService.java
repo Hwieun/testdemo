@@ -48,7 +48,11 @@ public class AccountService {
     }
 
     public Account update(Integer userId, Long accountId, Integer transferLimit, Integer dailyTransferLimit) {
-        return null;
+        Optional<Account> optional = accountRepository.findById(accountId);
+        Account account = optional.get();
+        if(!account.getUser().getId().equals(userId)) throw new ForbiddenException();
+        account.update(transferLimit, dailyTransferLimit);
+        return account;
     }
 
     public List<BalanceTransaction> getTransactionList(Integer userId, Long accountId, Long page, Integer size, LocalDate from, LocalDate to) {
