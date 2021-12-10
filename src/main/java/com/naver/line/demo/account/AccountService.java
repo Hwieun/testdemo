@@ -3,6 +3,10 @@ package com.naver.line.demo.account;
 import com.naver.line.demo.account.entity.Account;
 import com.naver.line.demo.account.entity.BalanceTransaction;
 import com.naver.line.demo.common.exceptions.ForbiddenException;
+import com.naver.line.demo.common.exceptions.NotFoundException;
+import com.naver.line.demo.transfer.Transfer;
+import com.naver.line.demo.transfer.TransferDto;
+import com.naver.line.demo.transfer.TransferRepository;
 import com.naver.line.demo.user.UserService;
 import com.naver.line.demo.user.entities.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +30,8 @@ public class AccountService {
     TransactionRepository transactionRepository;
     @Autowired
     UserService userService;
+    @Autowired
+    TransferRepository transferRepository;
 
     public Account create(Integer userId, Integer transferLimit, Integer dailyTransferLimit) {
         User user = userService.validateForCreateAccount(userId);
@@ -66,4 +72,36 @@ public class AccountService {
         if (!account.getUser().getId().equals(userId)) throw new ForbiddenException("소유자가 아닙니다.");
         return account;
     }
+
+    public BalanceTransaction transfer(Integer userId, TransferDto transferDto) {
+        transferDto.validate();
+
+        Account sender = accountRepository.findByNumber(transferDto.getSenderAccountNumber());
+        Account receiver = accountRepository.findByNumber(transferDto.getReceiverAccountNumber());
+        if(sender == null || receiver == null) throw new NotFoundException("계좌가 존재하지 않습니다.");
+
+        if (!sender.getUser().getId().equals(userId)) throw new ForbiddenException("소유자가 아닙니다.");
+        sender.validateStatus();
+        receiver.validateStatus();
+
+        Long senderDailyTransfer = Optional.ofNullable(transactionRepository.sumAmountByCreatedAtAndAccountId(sender.getId())).orElse(0L);
+        Long receiverDailyTransfer = Optional.ofNullable(transactionRepository.sumAmountByCreatedAtAndAccountId(receiver.getId())).orElse(0L);
+
+        BalanceTransaction withdraw = transactionRepository.save(
+                BalanceTransaction.withdraw(userId, sender, transferDto.getAmount(), transferDto.getSenderNote() != null ? transferDto.getSenderNote() : receiver.getUser().getName())
+        );
+        BalanceTransaction deposit = transactionRepository.save(
+                BalanceTransaction.deposit(userId, receiver, transferDto.getAmount(), transferDto.getReceiverNote() != null ? transferDto.getReceiverNote() : sender.getUser().getName())
+        );
+
+        sender.withdraw(senderDailyTransfer, transferDto.getAmount());
+        receiver.deposit(receiverDailyTransfer, transferDto.getAmount());
+
+        Transfer transfer = new Transfer(userId, withdraw, deposit, transferDto.getAmount());
+        transferRepository.save(transfer);
+
+        return withdraw;
+    }
+
 }
+

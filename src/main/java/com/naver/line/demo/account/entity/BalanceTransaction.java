@@ -46,5 +46,27 @@ public class BalanceTransaction {
     public enum Type {
         WITHDRAW, DEPOSIT
     }
+
+    public BalanceTransaction(Integer userId, Account account, Long amount, String note) {
+        this.userId = userId;
+        this.account = account;
+        this.amount = amount;
+        this.note = note;
+    }
+
+    public static BalanceTransaction withdraw(Integer userId, Account account, Long amount, String note) {
+        BalanceTransaction balanceTransaction = new BalanceTransaction(userId, account, amount, note);
+        balanceTransaction.beforeBalanceAmount = account.getAmount();
+        balanceTransaction.type = Type.WITHDRAW;
+        return balanceTransaction;
+    }
+
+    public static BalanceTransaction deposit(Integer userId, Account account, Long amount, String note) {
+        BalanceTransaction balanceTransaction = new BalanceTransaction(userId, account, amount, note);
+        balanceTransaction.beforeBalanceAmount = account.getAmount();
+        balanceTransaction.type = Type.DEPOSIT;
+        return balanceTransaction;
+
+    }
 }
 

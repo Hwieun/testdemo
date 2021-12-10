@@ -12,7 +12,9 @@ import java.util.List;
 @Repository
 public interface TransactionRepository extends JpaRepository<BalanceTransaction, Long> {
 
-    @Query("select t from BalanceTransaction t where t.account.id = ?1 and t.createdAt >= ?2 and t.createdAt < ?3 order by createdAt desc")
+    @Query("select t from BalanceTransaction t where t.account.id = ?1 and t.createdAt >= ?2 and t.createdAt < ?3 order by id desc")
     List<BalanceTransaction> findByCreatedAtAndAccountId(Long accountId, LocalDate from, LocalDate to, Pageable pageable);
 
+    @Query("select sum(t.amount) from BalanceTransaction t where t.account.id = ?1 and t.createdAt >= CURRENT_DATE and t.createdAt < CURRENT_DATE + 1")
+    Long sumAmountByCreatedAtAndAccountId(Long accountId);
 }

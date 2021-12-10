@@ -12,6 +12,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Entity
@@ -23,8 +24,8 @@ public class Account extends Constants {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    @Column(name = "user_id")
-    @ManyToOne (fetch = FetchType.LAZY)
+    //    @Column(name = "user_id")
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
@@ -53,7 +54,7 @@ public class Account extends Constants {
     private LocalDateTime updatedAt;
 
     public enum Status {
-        ENABLED, DISABLED
+        ENABLED, DISABLED,
     }
 
     @Builder
@@ -69,16 +70,34 @@ public class Account extends Constants {
     }
 
     public void deactivate() {
-        if(status.equals(Status.DISABLED) || amount > 0)
+        if (status.equals(Status.DISABLED) || amount > 0)
             throw new IllegalStateException("계좌가 비활성화 상태입니다.");
         this.status = Status.DISABLED;
     }
 
     public void update(Integer transferLimit, Integer dailyTransferLimit) {
-        if(status.equals(Status.DISABLED))
-            throw new IllegalStateException("계좌가 비활성화 상태입니다.");
+        validateStatus();
         this.transferLimit = transferLimit;
         this.dailyTransferLimit = dailyTransferLimit;
+    }
+
+    public void withdraw(long dailyTotalTransferAmount, long amount) {
+//        validateStatus();
+        if(this.amount < amount) throw new IllegalArgumentException("출금액이 출금 계좌의 잔액보다 많습니다.");
+        if(this.transferLimit < amount) throw new IllegalArgumentException("이체 금액이  1회 이체 한도를 초과하였습니다.");
+        if(this.dailyTransferLimit < dailyTotalTransferAmount + amount)
+            throw new IllegalArgumentException("당일 총 이체 금액과 이체 금액의 합이  1일 이체 한도를 초과하였습니다.");
+        this.amount -= amount;
+    }
+
+    public void deposit(long dailyTotalTransferAmount, long amount) {
+//        validateStatus();
+        this.amount += amount;
+    }
+
+    public void validateStatus() {
+        if (status.equals(Status.DISABLED))
+            throw new IllegalStateException("계좌가 비활성화 상태입니다.");
     }
 
 }

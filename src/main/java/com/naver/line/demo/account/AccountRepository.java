@@ -9,8 +9,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface AccountRepository extends JpaRepository<Account, Long> {
 
-//    @Query("select a.number from Account a order by a.number desc limit 1")
-    public Account findFirstByOrderByIdDesc();
+    Account findFirstByOrderByIdDesc();
 
-    public Integer findCountByUserId(Integer userId);
+    Integer findCountByUserId(Integer userId);
+
+    Account findByNumber(String number);
+
 }
