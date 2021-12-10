@@ -24,7 +24,7 @@ public class Account extends Constants {
     private Long id;
 
 //    @Column(name = "user_id")
-    @ManyToOne
+    @ManyToOne (fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
@@ -70,13 +70,13 @@ public class Account extends Constants {
 
     public void deactivate() {
         if(status.equals(Status.DISABLED) || amount > 0)
-            throw new IllegalStateException();
+            throw new IllegalStateException("계좌가 비활성화 상태입니다.");
         this.status = Status.DISABLED;
     }
 
     public void update(Integer transferLimit, Integer dailyTransferLimit) {
         if(status.equals(Status.DISABLED))
-            throw new IllegalStateException();
+            throw new IllegalStateException("계좌가 비활성화 상태입니다.");
         this.transferLimit = transferLimit;
         this.dailyTransferLimit = dailyTransferLimit;
     }
