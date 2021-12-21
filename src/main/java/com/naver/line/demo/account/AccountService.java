@@ -39,8 +39,9 @@ public class AccountService {
         String number = accountRepository.findFirstByOrderByIdDesc().getNumber();
         Long numberLong = Long.parseLong(number.replaceAll("-", "")) + 1;
 
-        return Account.builder().user(user).transferLimit(transferLimit).dailyTransferLimit(dailyTransferLimit)
+        Account account = Account.builder().user(user).transferLimit(transferLimit).dailyTransferLimit(dailyTransferLimit)
                 .number(numberLong).build();
+        return accountRepository.save(account);
     }
 
     public Account deactivate(Integer userId, Long accountId) {
@@ -66,7 +67,7 @@ public class AccountService {
         return transactionRepository.findByCreatedAtAndAccountId(accountId, from, to, pageable);
     }
 
-    private Account getAccount(Integer userId, Long accountId) {
+    public Account getAccount(Integer userId, Long accountId) {
         Optional<Account> optional = accountRepository.findById(accountId);
         Account account = optional.get();
         if (!account.getUser().getId().equals(userId)) throw new ForbiddenException("소유자가 아닙니다.");
